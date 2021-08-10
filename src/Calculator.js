@@ -93,8 +93,9 @@ export default class Calculator extends Component {
         });
       } else if (this.state.operator === "/") {
         this.setState({
-          input:
-            parseFloat(this.state.input) / parseFloat(this.state.prevInput),
+          input: Math.round(
+            parseFloat(this.state.input) / parseFloat(this.state.prevInput)
+          ),
         });
       } else if (this.state.operator === "-") {
         this.setState({

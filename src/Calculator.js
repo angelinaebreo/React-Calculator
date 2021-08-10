@@ -6,35 +6,33 @@ import Display from "./Display";
 export default class Calculator extends Component {
   constructor() {
     super();
+
     this.state = {
-      input: "", 
-      prevInput: "", 
-      operator: "", 
-      result: "", 
-      addNum: true,
-      dot: false
-
+      input: 0,
+      prevInput: 0,
+      operator: "",
+      switchNum: true,
+      dot: false,
     };
-    this.numbers = "1234567890"
-    this.operands = "-+*/"
 
-   
+    this.numbers = "1234567890";
+    this.operands = "-+*/";
   }
 
   handleClick = (e) => {
     let value = e.target.value;
     if (value === "sign") {
-      this.changeSign();
+      this.handleSign();
     } else if (value === "reset") {
-      this.reset();
+      this.handleClear();
     } else if (value === ".") {
-      this.dot();
+      this.handleDecimal();
     } else if (value === "=") {
-      this.calculate();
+      this.handleEqual();
     } else if (value === "backspace") {
-      this.backspace();
+      this.handleBackspace();
     } else if (value === "percent") {
-      this.percent();
+      this.handlePercent();
     } else if (this.numbers.includes(value)) {
       this.handleNumber(value);
     } else if (this.operands.includes(value)) {
@@ -42,178 +40,126 @@ export default class Calculator extends Component {
     }
   };
 
-
-  dot = () => {
-    console.log("dot")
-    if(!this.state.dot) {
+  handleDecimal = () => {
+    if (!this.state.dot || this.state.prevInput === 0) {
       this.setState({
-        input: this.state.input + ".",
-        dot: true
-      })
-    }
-    
-    console.log(this.state.input)
-    console.log(this.state.dot)
-    
-  };
-
-
-
-  handleNumber = (value) => {
-    console.log("handle number");
-
-    if (this.state.addNum) {
-      this.setState({
-        input: value, 
-        addNum: false
-      })
+        input: this.state.input.concat("."),
+        dot: true,
+      });
     } else {
       this.setState({
-        input: this.state.input + value
-      })
+        prevInput: this.state.prevInput.concat("."),
+        dot: true,
+      });
     }
-
-    // if (this.state.display === 0) {
-    //   this.setState({
-    //     display: value,
-    //     memory: value,
-    //   });
-    // } else {
-    //   this.setState({
-    //     display: this.state.display + value,
-    //     memory: this.state.memory + value,
-    //   });
-    // }
   };
 
-
+  handleNumber = (value) => {
+    const { input, prevInput, switchNum } = this.state;
+    if (switchNum || parseFloat(input) === 0) {
+      this.setState((prevState) => ({
+        input: prevState.input + value.toString(),
+      }));
+    } else {
+      this.setState((prevState) => ({
+        prevInput: prevState.prevInput + value.toString(),
+      }));
+    }
+  };
 
   handleOperator = (value) => {
-    console.log("handle operator");
-    console.log(value);
-
-
-    if(this.state.prevInput === "") {
-       this.setState({
-      prevInput: this.state.input,
-      operator: value,
-      addNum: true,
-      dot: false,
-
-    })
+    if (this.state.operator !== "") {
+      this.handleEqual();
     }
-    if (this.state.prevInput && this.state.input) {
-      this.calculate()
-
-    }
-   
-  
-  };
-
-  calculate = () => {
-    console.log("calculateeeee");
-    const { input, prevInput, operator } = this.state
-  if (operator === "+") {
-    this.setState({
-      result: parseFloat(prevInput) + parseFloat(input), 
-      addNum: true,
-      input: "",
-      
-    })
-   
-  } else if (operator === "-") {
-    this.setState({
-      result: parseFloat(prevInput) - parseFloat(input),
-      addNum: true,
-      input: ""
-    });
-   
-  } else if (operator === "*") {
-    this.setState({
-      result: parseFloat(prevInput) * parseFloat(input),
-      addNum: true,
-      input: "",
-    });
-   
-  } else if (operator === "/") {
-    this.setState({
-      result: parseFloat(prevInput) / parseFloat(input),
-      addNum: true,
-    });
-  }
-
-  this.setState({
-    prevInput: this.state.result
-  })
-  };
-
-
-  
-
-
-  reset = () => {
-    console.log("reset");
-    this.setState({
-      input: "", 
-      prevInput: "", 
-      operator: "", 
-      result: "",
-      addNum: true, 
-      dot: false
-    });
-  };
-
-
-  backspace = () => {
-    console.log("backspace");
-    console.log(this.state.input)
-    if (this.state.input) {
+    this.setState({ operator: value });
+    if (this.state.prevInput === 0 && this.state.input !== 0) {
       this.setState({
-      input: this.state.input.toString().slice(0, -1),
-     
-    });
+        switchNum: false,
+      });
     }
-    
   };
 
-
-
-  changeSign = () => {
-    console.log("change sign");
-
-if (this.state.input) {
-  this.setState({
-    input: parseFloat(this.state.input) * -1
-  })
-}
-  
+  handleEqual = () => {
+    if (this.state.input !== 0 && this.state.prevInput !== 0) {
+      if (this.state.operator === "+") {
+        this.setState({
+          input:
+            parseFloat(this.state.prevInput) + parseFloat(this.state.input),
+        });
+      } else if (this.state.operator === "*") {
+        this.setState({
+          input:
+            parseFloat(this.state.prevInput) * parseFloat(this.state.input),
+        });
+      } else if (this.state.operator === "/") {
+        this.setState({
+          input:
+            parseFloat(this.state.input) / parseFloat(this.state.prevInput),
+        });
+      } else if (this.state.operator === "-") {
+        this.setState({
+          input:
+            parseFloat(this.state.input) - parseFloat(this.state.prevInput),
+        });
+      }
+    }
+    if (this.state.operator !== "") {
+      this.setState({ prevInput: 0, switchNum: false });
+    } else {
+      this.setState({ prevInput: 0, operator: "", switchNum: true });
+    }
   };
 
-
-
-  percent = () => {
-    console.log("percent");
+  handleClear = () => {
     this.setState({
-      input: parseFloat(this.state.input) / 100,
+      input: 0,
+      prevInput: 0,
+      operator: "",
+      switchNum: true,
+      dot: false,
     });
   };
 
+  handleBackspace = () => {
+    if (this.state.switchNum || this.state.prevInput === 0) {
+      this.setState({ input: this.state.input.toString().slice(0, -1) });
+    } else {
+      this.setState({
+        prevInput: this.state.prevInput.toString().slice(0, -1),
+      });
+    }
+  };
 
+  handleSign = () => {
+    if (this.state.input !== 0) {
+      if (this.state.switchNum) {
+        this.setState((prevState) => ({
+          input: prevState.input * -1,
+        }));
+      } else {
+        this.setState((prevState) => ({
+          prevInput: prevState.prevInput * -1,
+        }));
+      }
+    }
+  };
 
+  handlePercent = () => {
+    if (this.state.switchNum || this.state.prevInput === 0) {
+      this.setState({ input: parseFloat(this.state.input) / 100 });
+    } else {
+      this.setState({ prevInput: parseFloat(this.state.prevInput) / 100 });
+    }
+  };
 
   render() {
     return (
       <div className="wrapper">
-      <div className="calculator">
-        <Display
-         input={this.state.input || "0"}
-         prevInput={this.state.prevInput}
-         result={this.state.result}
+        <div className="calculator">
+          <Display input={this.state.input} prevInput={this.state.prevInput} />
 
-        />
-
-        <Buttons handleClick={this.handleClick} />
-      </div>
+          <Buttons handleClick={this.handleClick} />
+        </div>
       </div>
     );
   }
